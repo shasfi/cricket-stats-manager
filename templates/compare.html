@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+
+{% block title %}Compare Players - CricStats{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="mb-2">
+                <i class="fas fa-balance-scale me-2"></i>Player Comparison
+            </h1>
+            <p class="text-muted">Compare performance statistics between two players in any format</p>
+        </div>
+    </div>
+
+    <!-- Comparison Form -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cogs me-2"></i>Select Players & Format
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-3">
+                                {{ form.player1.label(class="form-label") }}
+                                {{ form.player1(class="form-select" + (" is-invalid" if form.player1.errors else "")) }}
+                                {% if form.player1.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.player1.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-1 text-center">
+                                <i class="fas fa-exchange-alt fa-2x text-muted"></i>
+                            </div>
+                            <div class="col-md-3">
+                                {{ form.player2.label(class="form-label") }}
+                                {{ form.player2(class="form-select" + (" is-invalid" if form.player2.errors else "")) }}
+                                {% if form.player2.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.player2.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-3">
+                                {{ form.format.label(class="form-label") }}
+                                {{ form.format(class="form-select" + (" is-invalid" if form.format.errors else "")) }}
+                                {% if form.format.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for error in form.format.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-2">
+                                {{ form.submit(class="btn btn-primary w-100") }}
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comparison Results -->
+    {% if comparison_data %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <h3 class="mb-3">
+                    <i class="fas fa-chart-line me-2"></i>Comparison Results - {{ comparison_data.format }} Cricket
+                </h3>
+            </div>
+        </div>
+
+        <!-- Player Info Cards -->
+        <div class="row mb-4">
+            <div class="col-md-6 mb-3">
+                <div class="card border-primary">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">{{ comparison_data.player1.info.name }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <i class="fas fa-flag me-1"></i>{{ comparison_data.player1.info.country }}
+                            </div>
+                            <div class="col-6">
+                                <i class="fas fa-calendar me-1"></i>{{ comparison_data.player1.info.debut_year }}
+                            </div>
+                            <div class="col-12">
+                                <i class="fas fa-user me-1"></i>{{ comparison_data.player1.info.player_type.title() }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="card border-success">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">{{ comparison_data.player2.info.name }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <i class="fas fa-flag me-1"></i>{{ comparison_data.player2.info.country }}
+                            </div>
+                            <div class="col-6">
+                                <i class="fas fa-calendar me-1"></i>{{ comparison_data.player2.info.debut_year }}
+                            </div>
+                            <div class="col-12">
+                                <i class="fas fa-user me-1"></i>{{ comparison_data.player2.info.player_type.title() }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Comparison -->
+        {% if comparison_data.player1.stats and comparison_data.player2.stats %}
+            <!-- Batting Comparison -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-bar me-2"></i>Batting Statistics
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Statistic</th>
+                                            <th class="text-primary">{{ comparison_data.player1.info.name }}</th>
+                                            <th class="text-success">{{ comparison_data.player2.info.name }}</th>
+                                            <th>Better</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Matches</strong></td>
+                                            <td class="text-primary">{{ comparison_data.player1.stats.matches }}</td>
+                                            <td class="text-success">{{ comparison_data.player2.stats.matches }}</td>
+                                            <td>
+                                                {% if comparison_data.player1.stats.matches > comparison_data.player2.stats.matches %}
+                                                    <i class="fas fa-arrow-left text-primary"></i>
+                                                {% elif comparison_data.player2.stats.matches > comparison_data.player1.stats.matches %}
+                                                    <i class="fas fa-arrow-right text-success"></i>
+                                                {% else %}
+                                                    <i class="fas fa-equals text-muted"></i>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Total Runs</strong></td>
+                                            <td class="text-primary">{{ comparison_data.player1.stats.runs }}</td>
+                                            <td class="text-success">{{ comparison_data.player2.stats.runs }}</td>
+                                            <td>
+                                                {% if comparison_data.player1.stats.runs > comparison_data.player2.stats.runs %}
+                                                    <i class="fas fa-arrow-left text-primary"></i>
+                                                {% elif comparison_data.player2.stats.runs > comparison_data.player1.stats.runs %}
+                                                    <i class="fas fa-arrow-right text-success"></i>
+                                                {% else %}
+                                                    <i class="fas fa-equals text-muted"></i>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Batting Average</strong></td>
+                                            <td class="text-primary">{{ comparison_data.player1.stats.batting_average }}</td>
+                                            <td class="text-success">{{ comparison_data.player2.stats.batting_average }}</td>
+                                            <td>
+                                                {% if comparison_data.player1.stats.batting_average > comparison_data.player2.stats.batting_average %}
+                                                    <i class="fas fa-arrow-left text-primary"></i>
+                                                {% elif comparison_data.player2.stats.batting_average > comparison_data.player1.stats.batting_average %}
+                                                    <i class="fas fa-arrow-right text-success"></i>
+                                                {% else %}
+                                                    <i class="fas fa-equals text-muted"></i>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Highest Score</strong></td>
+                                            <td class="text-primary">{{ comparison_data.player1.stats.highest_score }}</td>
+                                            <td class="text-success">{{ comparison_data.player2.stats.highest_score }}</td>
+                                            <td>
+                                                {% if comparison_data.player1.stats.highest_score > comparison_data.player2.stats.highest_score %}
+                                                    <i class="fas fa-arrow-left text-primary"></i>
+                                                {% elif comparison_data.player2.stats.highest_score > comparison_data.player1.stats.highest_score %}
+                                                    <i class="fas fa-arrow-right text-success"></i>
+                                                {% else %}
+                                                    <i class="fas fa-equals text-muted"></i>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Centuries</strong></td>
+                                            <td class="text-primary">{{ comparison_data.player1.stats.hundreds }}</td>
+                                            <td class="text-success">{{ comparison_data.player2.stats.hundreds }}</td>
+                                            <td>
+                                                {% if comparison_data.player1.stats.hundreds > comparison_data.player2.stats.hundreds %}
+                                                    <i class="fas fa-arrow-left text-primary"></i>
+                                                {% elif comparison_data.player2.stats.hundreds > comparison_data.player1.stats.hundreds %}
+                                                    <i class="fas fa-arrow-right text-success"></i>
+                                                {% else %}
+                                                    <i class="fas fa-equals text-muted"></i>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Half Centuries</strong></td>
+                                            <td class="text-primary">{{ comparison_data.player1.stats.fifties }}</td>
+                                            <td class="text-success">{{ comparison_data.player2.stats.fifties }}</td>
+                                            <td>
+                                                {% if comparison_data.player1.stats.fifties > comparison_data.player2.stats.fifties %}
+                                                    <i class="fas fa-arrow-left text-primary"></i>
+                                                {% elif comparison_data.player2.stats.fifties > comparison_data.player1.stats.fifties %}
+                                                    <i class="fas fa-arrow-right text-success"></i>
+                                                {% else %}
+                                                    <i class="fas fa-equals text-muted"></i>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bowling Comparison (if applicable) -->
+            {% if comparison_data.player1.stats.wickets > 0 or comparison_data.player2.stats.wickets > 0 %}
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-dot-circle me-2"></i>Bowling Statistics
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Statistic</th>
+                                                <th class="text-primary">{{ comparison_data.player1.info.name }}</th>
+                                                <th class="text-success">{{ comparison_data.player2.info.name }}</th>
+                                                <th>Better</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>Wickets</strong></td>
+                                                <td class="text-primary">{{ comparison_data.player1.stats.wickets }}</td>
+                                                <td class="text-success">{{ comparison_data.player2.stats.wickets }}</td>
+                                                <td>
+                                                    {% if comparison_data.player1.stats.wickets > comparison_data.player2.stats.wickets %}
+                                                        <i class="fas fa-arrow-left text-primary"></i>
+                                                    {% elif comparison_data.player2.stats.wickets > comparison_data.player1.stats.wickets %}
+                                                        <i class="fas fa-arrow-right text-success"></i>
+                                                    {% else %}
+                                                        <i class="fas fa-equals text-muted"></i>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Bowling Average</strong></td>
+                                                <td class="text-primary">{{ comparison_data.player1.stats.bowling_average }}</td>
+                                                <td class="text-success">{{ comparison_data.player2.stats.bowling_average }}</td>
+                                                <td>
+                                                    {% if comparison_data.player1.stats.bowling_average > 0 and comparison_data.player2.stats.bowling_average > 0 %}
+                                                        {% if comparison_data.player1.stats.bowling_average < comparison_data.player2.stats.bowling_average %}
+                                                            <i class="fas fa-arrow-left text-primary"></i>
+                                                        {% elif comparison_data.player2.stats.bowling_average < comparison_data.player1.stats.bowling_average %}
+                                                            <i class="fas fa-arrow-right text-success"></i>
+                                                        {% else %}
+                                                            <i class="fas fa-equals text-muted"></i>
+                                                        {% endif %}
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Economy Rate</strong></td>
+                                                <td class="text-primary">{{ comparison_data.player1.stats.economy_rate }}</td>
+                                                <td class="text-success">{{ comparison_data.player2.stats.economy_rate }}</td>
+                                                <td>
+                                                    {% if comparison_data.player1.stats.economy_rate > 0 and comparison_data.player2.stats.economy_rate > 0 %}
+                                                        {% if comparison_data.player1.stats.economy_rate < comparison_data.player2.stats.economy_rate %}
+                                                            <i class="fas fa-arrow-left text-primary"></i>
+                                                        {% elif comparison_data.player2.stats.economy_rate < comparison_data.player1.stats.economy_rate %}
+                                                            <i class="fas fa-arrow-right text-success"></i>
+                                                        {% else %}
+                                                            <i class="fas fa-equals text-muted"></i>
+                                                        {% endif %}
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>5-wicket Hauls</strong></td>
+                                                <td class="text-primary">{{ comparison_data.player1.stats.five_wickets }}</td>
+                                                <td class="text-success">{{ comparison_data.player2.stats.five_wickets }}</td>
+                                                <td>
+                                                    {% if comparison_data.player1.stats.five_wickets > comparison_data.player2.stats.five_wickets %}
+                                                        <i class="fas fa-arrow-left text-primary"></i>
+                                                    {% elif comparison_data.player2.stats.five_wickets > comparison_data.player1.stats.five_wickets %}
+                                                        <i class="fas fa-arrow-right text-success"></i>
+                                                    {% else %}
+                                                        <i class="fas fa-equals text-muted"></i>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Visual Comparison Chart -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-radar me-2"></i>Visual Comparison
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="comparisonChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        {% else %}
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body text-center py-5">
+                            <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                            <h4>No Statistics Available</h4>
+                            <p class="text-muted">
+                                One or both players don't have statistics for {{ comparison_data.format }} cricket format.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
+
+<script src="{{ url_for('static', filename='js/comparison.js') }}"></script>
+{% if comparison_data and comparison_data.player1.stats and comparison_data.player2.stats %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const comparisonData = {
+        player1: {
+            name: "{{ comparison_data.player1.info.name }}",
+            stats: {{ comparison_data.player1.stats | tojson }}
+        },
+        player2: {
+            name: "{{ comparison_data.player2.info.name }}",
+            stats: {{ comparison_data.player2.stats | tojson }}
+        },
+        format: "{{ comparison_data.format }}"
+    };
+    
+    initializeComparisonChart(comparisonData);
+});
+</script>
+{% endif %}
+{% endblock %}

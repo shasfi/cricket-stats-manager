@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}Players - CricStats{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="mb-2">
+                <i class="fas fa-users me-2"></i>Players Database
+            </h1>
+            <p class="text-muted">Browse and search through cricket players from around the world</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            {% if current_user.is_authenticated and current_user.role in ['admin', 'analyst'] %}
+                <a href="{{ url_for('add_player') }}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Add New Player
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Search and Filter Form -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-filter me-2"></i>Search & Filter
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-3">
+                            {{ form.search.label(class="form-label") }}
+                            {{ form.search(class="form-control", placeholder="Enter player name", value=request.args.get('search', '')) }}
+                        </div>
+                        <div class="col-md-3">
+                            {{ form.country.label(class="form-label") }}
+                            {{ form.country(class="form-select") }}
+                        </div>
+                        <div class="col-md-3">
+                            {{ form.player_type.label(class="form-label") }}
+                            {{ form.player_type(class="form-select") }}
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-search me-1"></i>Search
+                            </button>
+                            <a href="{{ url_for('players') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>Clear
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Summary -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <p class="mb-0 text-muted">
+                    Showing {{ players.items|length }} of {{ players.total }} players
+                    {% if request.args.get('search') or request.args.get('country') or request.args.get('player_type') %}
+                        (filtered results)
+                    {% endif %}
+                </p>
+                <div class="btn-group btn-group-sm" role="group">
+                    <input type="radio" class="btn-check" name="view" id="card-view" checked>
+                    <label class="btn btn-outline-primary" for="card-view">
+                        <i class="fas fa-th"></i>
+                    </label>
+                    <input type="radio" class="btn-check" name="view" id="list-view">
+                    <label class="btn btn-outline-primary" for="list-view">
+                        <i class="fas fa-list"></i>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Players Grid/List -->
+    <div class="row" id="players-container">
+        {% if players.items %}
+            {% for player in players.items %}
+                <div class="col-lg-4 col-md-6 mb-3 player-card">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h5 class="card-title mb-0">{{ player.name }}</h5>
+                                <span class="badge bg-primary">{{ player.player_type.title() }}</span>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="row g-2 text-sm">
+                                    <div class="col-6">
+                                        <i class="fas fa-flag me-1 text-muted"></i>
+                                        <small>{{ player.country }}</small>
+                                    </div>
+                                    <div class="col-6">
+                                        <i class="fas fa-calendar me-1 text-muted"></i>
+                                        <small>Debut: {{ player.debut_year }}</small>
+                                    </div>
+                                    {% if player.batting_style %}
+                                        <div class="col-6">
+                                            <i class="fas fa-hand-paper me-1 text-muted"></i>
+                                            <small>{{ player.batting_style }}</small>
+                                        </div>
+                                    {% endif %}
+                                    {% if player.bowling_style %}
+                                        <div class="col-6">
+                                            <i class="fas fa-dot-circle me-1 text-muted"></i>
+                                            <small>{{ player.bowling_style[:15] }}{% if player.bowling_style|length > 15 %}...{% endif %}</small>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Quick Stats Preview -->
+                            <div class="row g-2 mb-3">
+                                {% set total_stats = player.statistics|length %}
+                                <div class="col-4 text-center">
+                                    <div class="border rounded p-2">
+                                        <div class="fw-bold text-primary">{{ total_stats }}</div>
+                                        <small class="text-muted">Records</small>
+                                    </div>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <div class="border rounded p-2">
+                                        <div class="fw-bold text-success">
+                                            {{ player.statistics|selectattr("format", "equalto", "Test")|list|length }}
+                                        </div>
+                                        <small class="text-muted">Test</small>
+                                    </div>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <div class="border rounded p-2">
+                                        <div class="fw-bold text-info">
+                                            {{ (player.statistics|selectattr("format", "equalto", "ODI")|list|length) + 
+                                               (player.statistics|selectattr("format", "equalto", "T20")|list|length) }}
+                                        </div>
+                                        <small class="text-muted">Limited</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card-footer bg-transparent">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Added {{ player.created_at.strftime('%b %d, %Y') }}
+                                </small>
+                                <div>
+                                    <a href="{{ url_for('player_detail', player_id=player.id) }}" 
+                                       class="btn btn-sm btn-primary">
+                                        <i class="fas fa-eye me-1"></i>View Details
+                                    </a>
+                                    {% if current_user.is_authenticated and current_user.role in ['admin', 'analyst'] %}
+                                        <a href="{{ url_for('edit_player', player_id=player.id) }}" 
+                                           class="btn btn-sm btn-outline-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <h4>No Players Found</h4>
+                        <p class="text-muted mb-3">
+                            {% if request.args.get('search') or request.args.get('country') or request.args.get('player_type') %}
+                                No players match your search criteria. Try adjusting your filters.
+                            {% else %}
+                                No players have been added to the database yet.
+                            {% endif %}
+                        </p>
+                        {% if current_user.is_authenticated and current_user.role in ['admin', 'analyst'] %}
+                            <a href="{{ url_for('add_player') }}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Add First Player
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Pagination -->
+    {% if players.pages > 1 %}
+        <div class="row mt-4">
+            <div class="col-12">
+                <nav aria-label="Player pagination">
+                    <ul class="pagination justify-content-center">
+                        {% if players.has_prev %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('players', page=players.prev_num, **request.args) }}">
+                                    <i class="fas fa-chevron-left"></i> Previous
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for page_num in players.iter_pages() %}
+                            {% if page_num %}
+                                {% if page_num != players.page %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="{{ url_for('players', page=page_num, **request.args) }}">{{ page_num }}</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ page_num }}</span>
+                                    </li>
+                                {% endif %}
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if players.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('players', page=players.next_num, **request.args) }}">
+                                    Next <i class="fas fa-chevron-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+// View toggle functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const cardViewBtn = document.getElementById('card-view');
+    const listViewBtn = document.getElementById('list-view');
+    const playersContainer = document.getElementById('players-container');
+    
+    listViewBtn.addEventListener('change', function() {
+        if (this.checked) {
+            playersContainer.classList.remove('row');
+            playersContainer.classList.add('list-group');
+            
+            document.querySelectorAll('.player-card').forEach(card => {
+                card.className = 'list-group-item';
+            });
+        }
+    });
+    
+    cardViewBtn.addEventListener('change', function() {
+        if (this.checked) {
+            playersContainer.classList.remove('list-group');
+            playersContainer.classList.add('row');
+            
+            document.querySelectorAll('.list-group-item').forEach(item => {
+                item.className = 'col-lg-4 col-md-6 mb-3 player-card';
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

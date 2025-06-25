@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel - CricStats{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Admin Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="mb-1">
+                        <i class="fas fa-cog me-2"></i>Admin Panel
+                    </h1>
+                    <p class="text-muted mb-0">System management and oversight</p>
+                </div>
+                <div>
+                    <span class="badge bg-danger fs-6">Administrator Access</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Overview Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_users }}</h4>
+                            <p class="card-text">Total Users</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="text-white">Registered accounts</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_players }}</h4>
+                            <p class="card-text">Total Players</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-user-friends fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="text-white">In database</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">{{ total_stats }}</h4>
+                            <p class="card-text">Statistical Records</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-chart-bar fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="text-white">Across all formats</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h4 class="card-title">3</h4>
+                            <p class="card-text">Cricket Formats</p>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="fas fa-globe fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <span class="text-dark">Test, ODI, T20</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('add_player') }}" class="btn btn-primary w-100">
+                                <i class="fas fa-plus me-2"></i>Add New Player
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{{ url_for('players') }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-users me-2"></i>Manage Players
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-outline-info w-100" onclick="refreshStats()">
+                                <i class="fas fa-sync-alt me-2"></i>Refresh Stats
+                            </button>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <button class="btn btn-outline-warning w-100" onclick="exportData()">
+                                <i class="fas fa-download me-2"></i>Export Data
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <!-- Recent Users -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-plus me-2"></i>Recent Users
+                    </h5>
+                    <small class="text-muted">Last 5 registrations</small>
+                </div>
+                <div class="card-body">
+                    {% if recent_users %}
+                        <div class="list-group list-group-flush">
+                            {% for user in recent_users %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                    <div>
+                                        <h6 class="mb-1">{{ user.username }}</h6>
+                                        <small class="text-muted">
+                                            <i class="fas fa-envelope me-1"></i>{{ user.email }}
+                                        </small>
+                                        <br>
+                                        <small class="text-muted">
+                                            <i class="fas fa-user-tag me-1"></i>
+                                            <span class="badge bg-secondary">{{ user.role.title() }}</span>
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <small class="text-muted d-block">
+                                            {{ user.created_at.strftime('%b %d, %Y') }}
+                                        </small>
+                                        <div class="btn-group btn-group-sm mt-1">
+                                            {% if user.is_active %}
+                                                <button class="btn btn-outline-success btn-sm" disabled>
+                                                    <i class="fas fa-check"></i> Active
+                                                </button>
+                                            {% else %}
+                                                <button class="btn btn-outline-danger btn-sm" disabled>
+                                                    <i class="fas fa-ban"></i> Inactive
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-user-slash fa-2x mb-2"></i>
+                            <p>No recent user registrations</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Players -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-friends me-2"></i>Recent Players
+                    </h5>
+                    <small class="text-muted">Last 5 additions</small>
+                </div>
+                <div class="card-body">
+                    {% if recent_players %}
+                        <div class="list-group list-group-flush">
+                            {% for player in recent_players %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                    <div>
+                                        <h6 class="mb-1">{{ player.name }}</h6>
+                                        <small class="text-muted">
+                                            <i class="fas fa-flag me-1"></i>{{ player.country }} • 
+                                            <i class="fas fa-user me-1"></i>{{ player.player_type.title() }}
+                                        </small>
+                                        <br>
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar me-1"></i>Debut: {{ player.debut_year }}
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <small class="text-muted d-block">
+                                            {{ player.created_at.strftime('%b %d, %Y') }}
+                                        </small>
+                                        <div class="btn-group btn-group-sm mt-1">
+                                            <a href="{{ url_for('player_detail', player_id=player.id) }}" 
+                                               class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('edit_player', player_id=player.id) }}" 
+                                               class="btn btn-outline-warning btn-sm">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{{ url_for('add_statistics', player_id=player.id) }}" 
+                                               class="btn btn-outline-success btn-sm">
+                                                <i class="fas fa-plus"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-user-slash fa-2x mb-2"></i>
+                            <p>No players added yet</p>
+                            <a href="{{ url_for('add_player') }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus me-1"></i>Add First Player
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Health -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-heartbeat me-2"></i>System Health
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="fas fa-database fa-2x text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">Database</h6>
+                                    <small class="text-success">
+                                        <i class="fas fa-check-circle me-1"></i>Connected
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="fas fa-server fa-2x text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">Application</h6>
+                                    <small class="text-success">
+                                        <i class="fas fa-check-circle me-1"></i>Running
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    <i class="fas fa-shield-alt fa-2x text-success"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">Security</h6>
+                                    <small class="text-success">
+                                        <i class="fas fa-check-circle me-1"></i>Active
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function refreshStats() {
+    // Show loading state
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Refreshing...';
+    btn.disabled = true;
+    
+    // Simulate refresh (in real app, this would be an AJAX call)
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
+        // Show success message
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-success alert-dismissible fade show';
+        alertDiv.innerHTML = `
+            Statistics refreshed successfully!
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.container').firstChild);
+    }, 2000);
+}
+
+function exportData() {
+    // Show loading state
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Exporting...';
+    btn.disabled = true;
+    
+    // Simulate export (in real app, this would trigger a download)
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
+        // Show success message
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-info alert-dismissible fade show';
+        alertDiv.innerHTML = `
+            Data export completed! Check your downloads folder.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.container').firstChild);
+    }, 3000);
+}
+</script>
+{% endblock %}
