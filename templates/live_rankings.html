@@ -70,7 +70,7 @@
                         <i class="fas fa-list"></i> Detailed Rankings
                     </a>
                     <small class="text-muted">
-                        Last updated: <span id="lastUpdate">{{ moment().format('h:mm:ss a') }}</span>
+                        Last updated: <span id="lastUpdate"></span>
                     </small>
                 </div>
             </div>
@@ -412,10 +412,12 @@
 </div>
 
 <script>
-// Auto-refresh every 2 minutes for live rankings
-setInterval(() => {
+// Set initial time and update every minute
+function updateTime() {
     document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
-}, 60000);
+}
+updateTime();
+setInterval(updateTime, 60000);
 
 // Full refresh every 5 minutes
 setTimeout(() => {

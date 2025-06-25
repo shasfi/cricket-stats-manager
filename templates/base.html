@@ -44,6 +44,31 @@
                             <i class="fas fa-balance-scale me-1"></i>Compare
                         </a>
                     </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-trophy me-1"></i>Rankings
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('live_rankings') }}">
+                                <i class="fas fa-chart-line text-primary"></i> Live Dashboard
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">Test Cricket</h6></li>
+                            <li><a class="dropdown-item" href="{{ url_for('rankings', format='Test', type='batting') }}">Batting Rankings</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('rankings', format='Test', type='bowling') }}">Bowling Rankings</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('rankings', format='Test', type='team') }}">Team Rankings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">ODI Cricket</h6></li>
+                            <li><a class="dropdown-item" href="{{ url_for('rankings', format='ODI', type='batting') }}">Batting Rankings</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('rankings', format='ODI', type='bowling') }}">Bowling Rankings</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('rankings', format='ODI', type='team') }}">Team Rankings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><h6 class="dropdown-header">T20 Cricket</h6></li>
+                            <li><a class="dropdown-item" href="{{ url_for('rankings', format='T20', type='batting') }}">Batting Rankings</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('rankings', format='T20', type='bowling') }}">Bowling Rankings</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('rankings', format='T20', type='team') }}">Team Rankings</a></li>
+                        </ul>
+                    </li>
                     {% if current_user.is_authenticated %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('dashboard') }}">

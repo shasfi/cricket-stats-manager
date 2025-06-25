@@ -89,7 +89,7 @@
                 <div class="card">
                     <div class="card-header">
                         <h5 class="mb-0">{{ format }} {{ ranking_type|title }} Rankings</h5>
-                        <small class="text-muted">Last updated: {{ moment().format('MMMM Do YYYY, h:mm a') }}</small>
+                        <small class="text-muted">Last updated: <span id="updateTime"></span></small>
                     </div>
                     <div class="card-body p-0">
                         {% if ranking_type == 'batting' %}
@@ -293,6 +293,9 @@
 </div>
 
 <script>
+// Set current time
+document.getElementById('updateTime').textContent = new Date().toLocaleString();
+
 // Auto-refresh rankings every 5 minutes
 setTimeout(() => {
     location.reload();
