@@ -1,0 +1,301 @@
+{% extends "base.html" %}
+
+{% block title %}Cricket Rankings - {{ format }} {{ ranking_type|title }}{% endblock %}
+
+{% block extra_head %}
+<style>
+.ranking-card {
+    transition: transform 0.2s;
+}
+.ranking-card:hover {
+    transform: translateY(-2px);
+}
+.rank-badge {
+    font-size: 1.2rem;
+    font-weight: bold;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+.rank-1 { background: linear-gradient(45deg, #FFD700, #FFA500); color: #000; }
+.rank-2 { background: linear-gradient(45deg, #C0C0C0, #A8A8A8); color: #000; }
+.rank-3 { background: linear-gradient(45deg, #CD7F32, #B8860B); color: #fff; }
+.rank-other { background: var(--bs-secondary); color: #fff; }
+.format-tabs .nav-link.active {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+}
+.ranking-stats {
+    font-size: 0.9rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h2">Cricket Rankings</h1>
+                <a href="{{ url_for('live_rankings') }}" class="btn btn-outline-primary">
+                    <i class="fas fa-chart-line"></i> Live Dashboard
+                </a>
+            </div>
+            
+            <!-- Format Selection -->
+            <ul class="nav nav-tabs format-tabs mb-4" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link {% if format == 'Test' %}active{% endif %}" 
+                       href="{{ url_for('rankings', format='Test', type=ranking_type) }}">Test</a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link {% if format == 'ODI' %}active{% endif %}" 
+                       href="{{ url_for('rankings', format='ODI', type=ranking_type) }}">ODI</a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <a class="nav-link {% if format == 'T20' %}active{% endif %}" 
+                       href="{{ url_for('rankings', format='T20', type=ranking_type) }}">T20</a>
+                </li>
+            </ul>
+            
+            <!-- Ranking Type Selection -->
+            <div class="btn-group mb-4" role="group">
+                <a href="{{ url_for('rankings', format=format, type='batting') }}" 
+                   class="btn {% if ranking_type == 'batting' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    <i class="fas fa-baseball-ball"></i> Batting
+                </a>
+                <a href="{{ url_for('rankings', format=format, type='bowling') }}" 
+                   class="btn {% if ranking_type == 'bowling' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    <i class="fas fa-bullseye"></i> Bowling
+                </a>
+                <a href="{{ url_for('rankings', format=format, type='all-rounder') }}" 
+                   class="btn {% if ranking_type == 'all-rounder' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    <i class="fas fa-star"></i> All-Rounder
+                </a>
+                <a href="{{ url_for('rankings', format=format, type='team') }}" 
+                   class="btn {% if ranking_type == 'team' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    <i class="fas fa-users"></i> Team
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12">
+            {% if rankings %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">{{ format }} {{ ranking_type|title }} Rankings</h5>
+                        <small class="text-muted">Last updated: {{ moment().format('MMMM Do YYYY, h:mm a') }}</small>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if ranking_type == 'batting' %}
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Rank</th>
+                                            <th>Player</th>
+                                            <th>Country</th>
+                                            <th>Type</th>
+                                            <th>Matches</th>
+                                            <th>Runs</th>
+                                            <th>Average</th>
+                                            <th>Strike Rate</th>
+                                            <th>100s</th>
+                                            <th>50s</th>
+                                            <th>Points</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for player in rankings %}
+                                        <tr class="ranking-card">
+                                            <td>
+                                                <span class="rank-badge 
+                                                    {% if player.rank == 1 %}rank-1
+                                                    {% elif player.rank == 2 %}rank-2
+                                                    {% elif player.rank == 3 %}rank-3
+                                                    {% else %}rank-other{% endif %}">
+                                                    {{ player.rank }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="{{ url_for('player_detail', player_id=player.player_id) }}" 
+                                                   class="text-decoration-none fw-bold">
+                                                    {{ player.player_name }}
+                                                </a>
+                                            </td>
+                                            <td>{{ player.country }}</td>
+                                            <td><span class="badge bg-secondary">{{ player.player_type|title }}</span></td>
+                                            <td>{{ player.matches }}</td>
+                                            <td class="fw-bold text-success">{{ player.runs }}</td>
+                                            <td>{{ player.average }}</td>
+                                            <td>{{ player.strike_rate }}</td>
+                                            <td>{{ player.hundreds }}</td>
+                                            <td>{{ player.fifties }}</td>
+                                            <td><span class="badge bg-primary">{{ player.points }}</span></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% elif ranking_type == 'bowling' %}
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Rank</th>
+                                            <th>Player</th>
+                                            <th>Country</th>
+                                            <th>Type</th>
+                                            <th>Matches</th>
+                                            <th>Wickets</th>
+                                            <th>Average</th>
+                                            <th>Economy</th>
+                                            <th>5W</th>
+                                            <th>Points</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for player in rankings %}
+                                        <tr class="ranking-card">
+                                            <td>
+                                                <span class="rank-badge 
+                                                    {% if player.rank == 1 %}rank-1
+                                                    {% elif player.rank == 2 %}rank-2
+                                                    {% elif player.rank == 3 %}rank-3
+                                                    {% else %}rank-other{% endif %}">
+                                                    {{ player.rank }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="{{ url_for('player_detail', player_id=player.player_id) }}" 
+                                                   class="text-decoration-none fw-bold">
+                                                    {{ player.player_name }}
+                                                </a>
+                                            </td>
+                                            <td>{{ player.country }}</td>
+                                            <td><span class="badge bg-secondary">{{ player.player_type|title }}</span></td>
+                                            <td>{{ player.matches }}</td>
+                                            <td class="fw-bold text-danger">{{ player.wickets }}</td>
+                                            <td>{{ player.bowling_average }}</td>
+                                            <td>{{ player.economy_rate }}</td>
+                                            <td>{{ player.five_wickets }}</td>
+                                            <td><span class="badge bg-primary">{{ player.points }}</span></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% elif ranking_type == 'all-rounder' %}
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Rank</th>
+                                            <th>Player</th>
+                                            <th>Country</th>
+                                            <th>Matches</th>
+                                            <th>Runs</th>
+                                            <th>Bat Avg</th>
+                                            <th>Wickets</th>
+                                            <th>Bowl Avg</th>
+                                            <th>Points</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for player in rankings %}
+                                        <tr class="ranking-card">
+                                            <td>
+                                                <span class="rank-badge 
+                                                    {% if player.rank == 1 %}rank-1
+                                                    {% elif player.rank == 2 %}rank-2
+                                                    {% elif player.rank == 3 %}rank-3
+                                                    {% else %}rank-other{% endif %}">
+                                                    {{ player.rank }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="{{ url_for('player_detail', player_id=player.player_id) }}" 
+                                                   class="text-decoration-none fw-bold">
+                                                    {{ player.player_name }}
+                                                </a>
+                                            </td>
+                                            <td>{{ player.country }}</td>
+                                            <td>{{ player.matches }}</td>
+                                            <td class="text-success">{{ player.runs }}</td>
+                                            <td>{{ player.batting_average }}</td>
+                                            <td class="text-danger">{{ player.wickets }}</td>
+                                            <td>{{ player.bowling_average }}</td>
+                                            <td><span class="badge bg-primary">{{ player.points }}</span></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% elif ranking_type == 'team' %}
+                            <div class="row">
+                                {% for team in rankings %}
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="card ranking-card h-100">
+                                        <div class="card-body">
+                                            <div class="d-flex align-items-center mb-3">
+                                                <span class="rank-badge me-3
+                                                    {% if team.rank == 1 %}rank-1
+                                                    {% elif team.rank == 2 %}rank-2
+                                                    {% elif team.rank == 3 %}rank-3
+                                                    {% else %}rank-other{% endif %}">
+                                                    {{ team.rank }}
+                                                </span>
+                                                <div>
+                                                    <h5 class="card-title mb-0">{{ team.country }}</h5>
+                                                    <small class="text-muted">{{ team.player_count }} players</small>
+                                                </div>
+                                            </div>
+                                            <div class="ranking-stats">
+                                                <div class="d-flex justify-content-between mb-1">
+                                                    <span>Batting Strength:</span>
+                                                    <strong class="text-success">{{ team.batting_strength }}</strong>
+                                                </div>
+                                                <div class="d-flex justify-content-between mb-1">
+                                                    <span>Bowling Strength:</span>
+                                                    <strong class="text-danger">{{ team.bowling_strength }}</strong>
+                                                </div>
+                                                <div class="d-flex justify-content-between mb-2">
+                                                    <span>Total Strength:</span>
+                                                    <span class="badge bg-primary">{{ team.total_strength }}</span>
+                                                </div>
+                                                <hr class="my-2">
+                                                <div class="d-flex justify-content-between">
+                                                    <small>Avg Batting: {{ team.avg_batting }}</small>
+                                                    <small>Avg Bowling: {{ team.avg_bowling }}</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    No ranking data available for {{ format }} {{ ranking_type }} currently.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-refresh rankings every 5 minutes
+setTimeout(() => {
+    location.reload();
+}, 300000);
+</script>
+{% endblock %}

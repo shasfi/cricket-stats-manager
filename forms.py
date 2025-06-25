@@ -13,7 +13,7 @@ class RegisterForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=3, max=64)])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
-    role = SelectField('Role', choices=[('user', 'User'), ('analyst', 'Analyst')], default='user')
+    role = SelectField('Role', choices=[('user', 'User')], default='user')
     submit = SubmitField('Register')
     
     def validate_username(self, username):

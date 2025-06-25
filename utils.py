@@ -85,12 +85,12 @@ def get_top_performers():
             
             top_performers['batting']['most_runs'].extend([
                 {
-                    'player': player.name,
-                    'country': player.country,
+                    'player': player_name,
+                    'country': country,
                     'value': total_runs,
                     'format': format_name
                 }
-                for player, country, total_runs in top_runs
+                for player_name, country, total_runs in top_runs
             ])
             
             # Top wicket takers
@@ -107,12 +107,12 @@ def get_top_performers():
             
             top_performers['bowling']['most_wickets'].extend([
                 {
-                    'player': player.name,
-                    'country': player.country,
+                    'player': player_name,
+                    'country': country,
                     'value': total_wickets,
                     'format': format_name
                 }
-                for player, country, total_wickets in top_wickets
+                for player_name, country, total_wickets in top_wickets
             ])
         
         return top_performers

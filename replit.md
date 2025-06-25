@@ -110,8 +110,12 @@ CricStats is a comprehensive web application for cricket statistics analysis and
 - **Session Secret**: Environment variable for session security
 - **Debug Mode**: Disabled in production environment
 
-## Changelog
-- June 25, 2025. Initial setup
+## Recent Changes
+- June 25, 2025: Fixed login authentication and populated database with 40+ authentic cricket players
+- June 25, 2025: Added comprehensive real-time rankings system for Test, ODI, and T20 formats
+- June 25, 2025: Removed analyst role, now only admin and user roles available
+- June 25, 2025: Implemented live rankings dashboard with auto-refresh functionality
+- June 25, 2025: Added team rankings based on player performance across formats
 
 ## User Preferences
 

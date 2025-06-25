@@ -1,0 +1,425 @@
+{% extends "base.html" %}
+
+{% block title %}Live Cricket Rankings Dashboard{% endblock %}
+
+{% block extra_head %}
+<style>
+.format-section {
+    border-left: 4px solid var(--bs-primary);
+    padding-left: 15px;
+    margin-bottom: 2rem;
+}
+.format-section.test { border-color: #dc3545; }
+.format-section.odi { border-color: #fd7e14; }
+.format-section.t20 { border-color: #20c997; }
+
+.mini-ranking {
+    max-height: 400px;
+    overflow-y: auto;
+}
+.rank-mini {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+.rank-1-mini { background: linear-gradient(45deg, #FFD700, #FFA500); color: #000; }
+.rank-2-mini { background: linear-gradient(45deg, #C0C0C0, #A8A8A8); color: #000; }
+.rank-3-mini { background: linear-gradient(45deg, #CD7F32, #B8860B); color: #fff; }
+.rank-other-mini { background: var(--bs-secondary); color: #fff; }
+
+.stats-card {
+    transition: transform 0.2s;
+}
+.stats-card:hover {
+    transform: translateY(-2px);
+}
+.live-indicator {
+    animation: pulse 2s infinite;
+}
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 mb-1">
+                        <i class="fas fa-chart-line text-primary"></i>
+                        Live Cricket Rankings
+                    </h1>
+                    <p class="text-muted mb-0">
+                        <span class="live-indicator text-success">●</span>
+                        Real-time rankings across all formats
+                    </p>
+                </div>
+                <div>
+                    <a href="{{ url_for('rankings') }}" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-list"></i> Detailed Rankings
+                    </a>
+                    <small class="text-muted">
+                        Last updated: <span id="lastUpdate">{{ moment().format('h:mm:ss a') }}</span>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Cricket Rankings -->
+    <div class="format-section test">
+        <h3 class="text-danger mb-3">
+            <i class="fas fa-clock"></i> Test Cricket
+        </h3>
+        <div class="row">
+            <!-- Test Batting -->
+            <div class="col-lg-4 mb-4">
+                <div class="card stats-card h-100">
+                    <div class="card-header bg-danger text-white">
+                        <h6 class="mb-0"><i class="fas fa-baseball-ball"></i> Top Batsmen</h6>
+                    </div>
+                    <div class="card-body p-0 mini-ranking">
+                        {% for player in test_batting[:10] %}
+                        <div class="d-flex align-items-center p-2 border-bottom">
+                            <span class="rank-mini me-2
+                                {% if player.rank == 1 %}rank-1-mini
+                                {% elif player.rank == 2 %}rank-2-mini
+                                {% elif player.rank == 3 %}rank-3-mini
+                                {% else %}rank-other-mini{% endif %}">
+                                {{ player.rank }}
+                            </span>
+                            <div class="flex-grow-1">
+                                <a href="{{ url_for('player_detail', player_id=player.player_id) }}" 
+                                   class="text-decoration-none fw-bold">{{ player.player_name }}</a>
+                                <br><small class="text-muted">{{ player.country }}</small>
+                            </div>
+                            <div class="text-end">
+                                <small class="fw-bold text-success">{{ player.runs }}</small>
+                                <br><small class="text-muted">Avg: {{ player.average }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{{ url_for('rankings', format='Test', type='batting') }}" 
+                           class="btn btn-sm btn-outline-danger">View All</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Bowling -->
+            <div class="col-lg-4 mb-4">
+                <div class="card stats-card h-100">
+                    <div class="card-header bg-danger text-white">
+                        <h6 class="mb-0"><i class="fas fa-bullseye"></i> Top Bowlers</h6>
+                    </div>
+                    <div class="card-body p-0 mini-ranking">
+                        {% for player in test_bowling[:10] %}
+                        <div class="d-flex align-items-center p-2 border-bottom">
+                            <span class="rank-mini me-2
+                                {% if player.rank == 1 %}rank-1-mini
+                                {% elif player.rank == 2 %}rank-2-mini
+                                {% elif player.rank == 3 %}rank-3-mini
+                                {% else %}rank-other-mini{% endif %}">
+                                {{ player.rank }}
+                            </span>
+                            <div class="flex-grow-1">
+                                <a href="{{ url_for('player_detail', player_id=player.player_id) }}" 
+                                   class="text-decoration-none fw-bold">{{ player.player_name }}</a>
+                                <br><small class="text-muted">{{ player.country }}</small>
+                            </div>
+                            <div class="text-end">
+                                <small class="fw-bold text-primary">{{ player.wickets }}W</small>
+                                <br><small class="text-muted">Avg: {{ player.bowling_average }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{{ url_for('rankings', format='Test', type='bowling') }}" 
+                           class="btn btn-sm btn-outline-danger">View All</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Teams -->
+            <div class="col-lg-4 mb-4">
+                <div class="card stats-card h-100">
+                    <div class="card-header bg-danger text-white">
+                        <h6 class="mb-0"><i class="fas fa-users"></i> Team Rankings</h6>
+                    </div>
+                    <div class="card-body p-0 mini-ranking">
+                        {% for team in test_teams %}
+                        <div class="d-flex align-items-center p-2 border-bottom">
+                            <span class="rank-mini me-2
+                                {% if team.rank == 1 %}rank-1-mini
+                                {% elif team.rank == 2 %}rank-2-mini
+                                {% elif team.rank == 3 %}rank-3-mini
+                                {% else %}rank-other-mini{% endif %}">
+                                {{ team.rank }}
+                            </span>
+                            <div class="flex-grow-1">
+                                <span class="fw-bold">{{ team.country }}</span>
+                                <br><small class="text-muted">{{ team.player_count }} players</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-primary">{{ team.total_strength }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{{ url_for('rankings', format='Test', type='team') }}" 
+                           class="btn btn-sm btn-outline-danger">View All</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ODI Cricket Rankings -->
+    <div class="format-section odi">
+        <h3 class="text-warning mb-3">
+            <i class="fas fa-circle"></i> One Day International (ODI)
+        </h3>
+        <div class="row">
+            <!-- ODI Batting -->
+            <div class="col-lg-4 mb-4">
+                <div class="card stats-card h-100">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0"><i class="fas fa-baseball-ball"></i> Top Batsmen</h6>
+                    </div>
+                    <div class="card-body p-0 mini-ranking">
+                        {% for player in odi_batting[:10] %}
+                        <div class="d-flex align-items-center p-2 border-bottom">
+                            <span class="rank-mini me-2
+                                {% if player.rank == 1 %}rank-1-mini
+                                {% elif player.rank == 2 %}rank-2-mini
+                                {% elif player.rank == 3 %}rank-3-mini
+                                {% else %}rank-other-mini{% endif %}">
+                                {{ player.rank }}
+                            </span>
+                            <div class="flex-grow-1">
+                                <a href="{{ url_for('player_detail', player_id=player.player_id) }}" 
+                                   class="text-decoration-none fw-bold">{{ player.player_name }}</a>
+                                <br><small class="text-muted">{{ player.country }}</small>
+                            </div>
+                            <div class="text-end">
+                                <small class="fw-bold text-success">{{ player.runs }}</small>
+                                <br><small class="text-muted">SR: {{ player.strike_rate }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{{ url_for('rankings', format='ODI', type='batting') }}" 
+                           class="btn btn-sm btn-outline-warning">View All</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ODI Bowling -->
+            <div class="col-lg-4 mb-4">
+                <div class="card stats-card h-100">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0"><i class="fas fa-bullseye"></i> Top Bowlers</h6>
+                    </div>
+                    <div class="card-body p-0 mini-ranking">
+                        {% for player in odi_bowling[:10] %}
+                        <div class="d-flex align-items-center p-2 border-bottom">
+                            <span class="rank-mini me-2
+                                {% if player.rank == 1 %}rank-1-mini
+                                {% elif player.rank == 2 %}rank-2-mini
+                                {% elif player.rank == 3 %}rank-3-mini
+                                {% else %}rank-other-mini{% endif %}">
+                                {{ player.rank }}
+                            </span>
+                            <div class="flex-grow-1">
+                                <a href="{{ url_for('player_detail', player_id=player.player_id) }}" 
+                                   class="text-decoration-none fw-bold">{{ player.player_name }}</a>
+                                <br><small class="text-muted">{{ player.country }}</small>
+                            </div>
+                            <div class="text-end">
+                                <small class="fw-bold text-primary">{{ player.wickets }}W</small>
+                                <br><small class="text-muted">Eco: {{ player.economy_rate }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{{ url_for('rankings', format='ODI', type='bowling') }}" 
+                           class="btn btn-sm btn-outline-warning">View All</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ODI Teams -->
+            <div class="col-lg-4 mb-4">
+                <div class="card stats-card h-100">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0"><i class="fas fa-users"></i> Team Rankings</h6>
+                    </div>
+                    <div class="card-body p-0 mini-ranking">
+                        {% for team in odi_teams %}
+                        <div class="d-flex align-items-center p-2 border-bottom">
+                            <span class="rank-mini me-2
+                                {% if team.rank == 1 %}rank-1-mini
+                                {% elif team.rank == 2 %}rank-2-mini
+                                {% elif team.rank == 3 %}rank-3-mini
+                                {% else %}rank-other-mini{% endif %}">
+                                {{ team.rank }}
+                            </span>
+                            <div class="flex-grow-1">
+                                <span class="fw-bold">{{ team.country }}</span>
+                                <br><small class="text-muted">{{ team.player_count }} players</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-primary">{{ team.total_strength }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{{ url_for('rankings', format='ODI', type='team') }}" 
+                           class="btn btn-sm btn-outline-warning">View All</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- T20 Cricket Rankings -->
+    <div class="format-section t20">
+        <h3 class="text-success mb-3">
+            <i class="fas fa-bolt"></i> Twenty20 (T20)
+        </h3>
+        <div class="row">
+            <!-- T20 Batting -->
+            <div class="col-lg-4 mb-4">
+                <div class="card stats-card h-100">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0"><i class="fas fa-baseball-ball"></i> Top Batsmen</h6>
+                    </div>
+                    <div class="card-body p-0 mini-ranking">
+                        {% for player in t20_batting[:10] %}
+                        <div class="d-flex align-items-center p-2 border-bottom">
+                            <span class="rank-mini me-2
+                                {% if player.rank == 1 %}rank-1-mini
+                                {% elif player.rank == 2 %}rank-2-mini
+                                {% elif player.rank == 3 %}rank-3-mini
+                                {% else %}rank-other-mini{% endif %}">
+                                {{ player.rank }}
+                            </span>
+                            <div class="flex-grow-1">
+                                <a href="{{ url_for('player_detail', player_id=player.player_id) }}" 
+                                   class="text-decoration-none fw-bold">{{ player.player_name }}</a>
+                                <br><small class="text-muted">{{ player.country }}</small>
+                            </div>
+                            <div class="text-end">
+                                <small class="fw-bold text-success">{{ player.runs }}</small>
+                                <br><small class="text-muted">SR: {{ player.strike_rate }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{{ url_for('rankings', format='T20', type='batting') }}" 
+                           class="btn btn-sm btn-outline-success">View All</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- T20 Bowling -->
+            <div class="col-lg-4 mb-4">
+                <div class="card stats-card h-100">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0"><i class="fas fa-bullseye"></i> Top Bowlers</h6>
+                    </div>
+                    <div class="card-body p-0 mini-ranking">
+                        {% for player in t20_bowling[:10] %}
+                        <div class="d-flex align-items-center p-2 border-bottom">
+                            <span class="rank-mini me-2
+                                {% if player.rank == 1 %}rank-1-mini
+                                {% elif player.rank == 2 %}rank-2-mini
+                                {% elif player.rank == 3 %}rank-3-mini
+                                {% else %}rank-other-mini{% endif %}">
+                                {{ player.rank }}
+                            </span>
+                            <div class="flex-grow-1">
+                                <a href="{{ url_for('player_detail', player_id=player.player_id) }}" 
+                                   class="text-decoration-none fw-bold">{{ player.player_name }}</a>
+                                <br><small class="text-muted">{{ player.country }}</small>
+                            </div>
+                            <div class="text-end">
+                                <small class="fw-bold text-primary">{{ player.wickets }}W</small>
+                                <br><small class="text-muted">Eco: {{ player.economy_rate }}</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{{ url_for('rankings', format='T20', type='bowling') }}" 
+                           class="btn btn-sm btn-outline-success">View All</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- T20 Teams -->
+            <div class="col-lg-4 mb-4">
+                <div class="card stats-card h-100">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0"><i class="fas fa-users"></i> Team Rankings</h6>
+                    </div>
+                    <div class="card-body p-0 mini-ranking">
+                        {% for team in t20_teams %}
+                        <div class="d-flex align-items-center p-2 border-bottom">
+                            <span class="rank-mini me-2
+                                {% if team.rank == 1 %}rank-1-mini
+                                {% elif team.rank == 2 %}rank-2-mini
+                                {% elif team.rank == 3 %}rank-3-mini
+                                {% else %}rank-other-mini{% endif %}">
+                                {{ team.rank }}
+                            </span>
+                            <div class="flex-grow-1">
+                                <span class="fw-bold">{{ team.country }}</span>
+                                <br><small class="text-muted">{{ team.player_count }} players</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-primary">{{ team.total_strength }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="{{ url_for('rankings', format='T20', type='team') }}" 
+                           class="btn btn-sm btn-outline-success">View All</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-refresh every 2 minutes for live rankings
+setInterval(() => {
+    document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+}, 60000);
+
+// Full refresh every 5 minutes
+setTimeout(() => {
+    location.reload();
+}, 300000);
+</script>
+{% endblock %}

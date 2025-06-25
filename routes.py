@@ -5,6 +5,7 @@ from app import app, db
 from models import User, Player, PlayerStatistic, TopPerformance
 from forms import LoginForm, RegisterForm, PlayerForm, PlayerStatisticForm, SearchForm, CompareForm
 from utils import get_player_career_stats, get_top_performers, generate_comparison_data
+from rankings import get_batting_rankings, get_bowling_rankings, get_all_rounder_rankings, get_team_rankings
 from sqlalchemy import or_, and_
 import logging
 
@@ -176,9 +177,9 @@ def admin():
 @app.route('/admin/add_player', methods=['GET', 'POST'])
 @login_required
 def add_player():
-    """Add new player - admin/analyst only"""
-    if current_user.role not in ['admin', 'analyst']:
-        flash('Access denied. Admin or Analyst privileges required.', 'danger')
+    """Add new player - admin only"""
+    if current_user.role != 'admin':
+        flash('Access denied. Admin privileges required.', 'danger')
         return redirect(url_for('dashboard'))
     
     form = PlayerForm()
@@ -202,9 +203,9 @@ def add_player():
 @app.route('/admin/edit_player/<int:player_id>', methods=['GET', 'POST'])
 @login_required
 def edit_player(player_id):
-    """Edit player information - admin/analyst only"""
-    if current_user.role not in ['admin', 'analyst']:
-        flash('Access denied. Admin or Analyst privileges required.', 'danger')
+    """Edit player information - admin only"""
+    if current_user.role != 'admin':
+        flash('Access denied. Admin privileges required.', 'danger')
         return redirect(url_for('dashboard'))
     
     player = Player.query.get_or_404(player_id)
@@ -221,9 +222,9 @@ def edit_player(player_id):
 @app.route('/admin/add_stats/<int:player_id>', methods=['GET', 'POST'])
 @login_required
 def add_statistics(player_id):
-    """Add player statistics - admin/analyst only"""
-    if current_user.role not in ['admin', 'analyst']:
-        flash('Access denied. Admin or Analyst privileges required.', 'danger')
+    """Add player statistics - admin only"""
+    if current_user.role != 'admin':
+        flash('Access denied. Admin privileges required.', 'danger')
         return redirect(url_for('dashboard'))
     
     player = Player.query.get_or_404(player_id)
@@ -272,6 +273,62 @@ def api_player_stats(player_id):
     }
     
     return jsonify(data)
+
+@app.route('/rankings')
+def rankings():
+    """Cricket rankings for all formats"""
+    format_name = request.args.get('format', 'Test')
+    ranking_type = request.args.get('type', 'batting')
+    
+    if format_name not in ['Test', 'ODI', 'T20']:
+        format_name = 'Test'
+    
+    if ranking_type not in ['batting', 'bowling', 'all-rounder', 'team']:
+        ranking_type = 'batting'
+    
+    rankings_data = {}
+    
+    if ranking_type == 'batting':
+        rankings_data = get_batting_rankings(format_name)
+    elif ranking_type == 'bowling':
+        rankings_data = get_bowling_rankings(format_name)
+    elif ranking_type == 'all-rounder':
+        rankings_data = get_all_rounder_rankings(format_name)
+    elif ranking_type == 'team':
+        team_rankings = get_team_rankings()
+        rankings_data = team_rankings.get(format_name, [])
+    
+    return render_template('rankings.html',
+                         rankings=rankings_data,
+                         format=format_name,
+                         ranking_type=ranking_type)
+
+@app.route('/rankings/live')
+def live_rankings():
+    """Live rankings dashboard with all formats"""
+    # Get rankings for all formats and types
+    test_batting = get_batting_rankings('Test', 10)
+    test_bowling = get_bowling_rankings('Test', 10)
+    test_teams = get_team_rankings().get('Test', [])[:5]
+    
+    odi_batting = get_batting_rankings('ODI', 10)
+    odi_bowling = get_bowling_rankings('ODI', 10)
+    odi_teams = get_team_rankings().get('ODI', [])[:5]
+    
+    t20_batting = get_batting_rankings('T20', 10)
+    t20_bowling = get_bowling_rankings('T20', 10)
+    t20_teams = get_team_rankings().get('T20', [])[:5]
+    
+    return render_template('live_rankings.html',
+                         test_batting=test_batting,
+                         test_bowling=test_bowling,
+                         test_teams=test_teams,
+                         odi_batting=odi_batting,
+                         odi_bowling=odi_bowling,
+                         odi_teams=odi_teams,
+                         t20_batting=t20_batting,
+                         t20_bowling=t20_bowling,
+                         t20_teams=t20_teams)
 
 @app.errorhandler(404)
 def not_found_error(error):
