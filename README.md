@@ -1,124 +1,320 @@
-# CricStats - Cricket Statistics Analysis System
+# CricStats - Cricket Statistics Management System
 
-A comprehensive web application for cricket statistics analysis and management, built with Flask and designed to handle player performance data across different cricket formats (Test, ODI, T20).
+A comprehensive Flask-based web application for managing cricket player statistics, rankings, and analysis.
 
 ## Features
 
-- **Real-time Rankings**: Live rankings for Test, ODI, and T20 formats
-- **Player Management**: Comprehensive player profiles and statistics
-- **Performance Analytics**: Statistical analysis and player comparisons
-- **User Authentication**: Secure login system with role-based access
-- **Interactive Visualizations**: Charts and graphs using Chart.js
-- **Responsive Design**: Mobile-friendly Bootstrap interface
+- **Player Management**: Add, edit, and manage cricket players
+- **Statistics Tracking**: Comprehensive batting and bowling statistics
+- **Rankings System**: Live rankings for different formats
+- **Comparison Tool**: Compare players across different metrics
+- **Admin Panel**: Full administrative control
+- **User Authentication**: Secure login system
+- **Data Visualization**: Charts and graphs for statistics
+- **PostgreSQL Support**: Robust database backend
 
-## Technology Stack
+## Prerequisites
 
-- **Backend**: Flask (Python)
-- **Database**: PostgreSQL with SQLAlchemy ORM
-- **Frontend**: Bootstrap 5, Chart.js, Font Awesome
-- **Authentication**: Flask-Login
-- **Forms**: Flask-WTF with validation
+- Python 3.11 or higher
+- PostgreSQL 12 or higher
+- pip (Python package installer)
 
-## Installation
+## Installation & Setup
 
-### Prerequisites
-- Python 3.11+
-- PostgreSQL database
+### 1. Clone the Repository
 
-### Setup
+```bash
+git clone <repository-url>
+cd FlaskDataManager
+```
 
-1. **Clone or download the project files**
+### 2. Create Virtual Environment
 
-2. **Install dependencies**:
+```bash
+# Windows
+python -m venv venv
+venv\Scripts\activate
+
+# Linux/Mac
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### 3. Install Dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
-3. **Set environment variables**:
+### 4. PostgreSQL Setup
+
+#### Option A: Using the Setup Script (Recommended)
+
 ```bash
-export DATABASE_URL="postgresql://username:password@localhost/cricstats"
-export SESSION_SECRET="your-secret-key-here"
+python setup_postgresql.py
 ```
 
-4. **Initialize the database**:
+This script will:
+- Create a PostgreSQL user and database
+- Set up environment variables
+- Test the database connection
+
+#### Option B: Manual PostgreSQL Setup
+
+1. **Install PostgreSQL** (if not already installed)
+   - Download from: https://www.postgresql.org/download/
+   - Or use package manager:
+     ```bash
+     # Ubuntu/Debian
+     sudo apt-get install postgresql postgresql-contrib
+     
+     # macOS
+     brew install postgresql
+     
+     # Windows
+     # Download installer from PostgreSQL website
+     ```
+
+2. **Create Database and User**
+   ```sql
+   -- Connect to PostgreSQL as superuser
+   psql -U postgres
+   
+   -- Create user and database
+   CREATE USER cricstats_user WITH PASSWORD 'your_password';
+   CREATE DATABASE cricstats_db OWNER cricstats_user;
+   GRANT ALL PRIVILEGES ON DATABASE cricstats_db TO cricstats_user;
+   \q
+   ```
+
+3. **Configure Environment Variables**
+   Create a `.env` file in the project root:
+   ```env
+   FLASK_APP=app.py
+   FLASK_ENV=development
+   FLASK_CONFIG=postgresql
+   
+   DATABASE_URL=postgresql://cricstats_user:your_password@localhost:5432/cricstats_db
+   
+   SECRET_KEY=your-secret-key-here
+   
+   POSTGRES_USER=cricstats_user
+   POSTGRES_PASSWORD=your_password
+   POSTGRES_DB=cricstats_db
+   POSTGRES_HOST=localhost
+   POSTGRES_PORT=5432
+   ```
+
+### 5. Run the Application
+
 ```bash
-python -c "from app import app, db; app.app_context().push(); db.create_all()"
+# Option 1: Using the run script
+python run.py
+
+# Option 2: Direct execution
+python app.py
+
+# Option 3: Using Flask CLI
+flask run
 ```
 
-5. **Run the application**:
-```bash
-python main.py
-# or
-gunicorn --bind 0.0.0.0:5000 main:app
-```
+### 6. Access the Application
 
-6. **Access the application**:
-Open your browser and go to `http://localhost:5000`
+- **URL**: http://localhost:5000
+- **Admin Login**: 
+  - Username: `admin`
+  - Password: `admin123`
 
-## Quick Start
+## Configuration Options
 
-1. Register a new user account
-2. Browse the 40+ authentic cricket players in the database
-3. View live rankings across Test, ODI, and T20 formats
-4. Compare player performances
-5. Explore detailed player statistics and visualizations
+### Database Configuration
+
+The application supports multiple database configurations:
+
+- **SQLite** (default for development)
+- **PostgreSQL** (recommended for production)
+
+Set the `FLASK_CONFIG` environment variable:
+- `development`: Uses SQLite
+- `postgresql`: Uses PostgreSQL
+- `production`: Uses PostgreSQL with production settings
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `FLASK_CONFIG` | Application configuration | `default` |
+| `DATABASE_URL` | Database connection string | SQLite file |
+| `SECRET_KEY` | Flask secret key | Auto-generated |
+| `POSTGRES_USER` | PostgreSQL username | `cricstats_user` |
+| `POSTGRES_PASSWORD` | PostgreSQL password | `cricstats_password` |
+| `POSTGRES_DB` | PostgreSQL database name | `cricstats_db` |
+| `POSTGRES_HOST` | PostgreSQL host | `localhost` |
+| `POSTGRES_PORT` | PostgreSQL port | `5432` |
 
 ## Project Structure
 
 ```
-cricstats/
-├── app.py              # Flask application setup
-├── main.py             # Application entry point
-├── models.py           # Database models
-├── routes.py           # Application routes
-├── forms.py            # Form definitions
-├── rankings.py         # Ranking calculation logic
-├── utils.py            # Utility functions
-├── templates/          # HTML templates
-├── static/             # CSS, JS, and assets
-└── requirements.txt    # Python dependencies
+FlaskDataManager/
+├── app.py                 # Main application file
+├── config.py              # Configuration classes
+├── models.py              # Database models
+├── routes.py              # Application routes
+├── forms.py               # WTForms definitions
+├── utils.py               # Utility functions
+├── rankings.py            # Rankings logic
+├── setup_postgresql.py    # PostgreSQL setup script
+├── run.py                 # Application runner
+├── requirements.txt       # Python dependencies
+├── static/                # Static files (CSS, JS, images)
+├── templates/             # HTML templates
+└── instance/              # Instance-specific files
 ```
 
-## Usage
+## Features Overview
 
-### Admin Functions
-- Add new players and statistics
-- Manage user accounts
-- Access admin dashboard
+### Player Management
+- Add new players with detailed information
+- Edit existing player details
+- Bulk player import functionality
+- Player search and filtering
 
-### User Functions
-- Browse player database
-- View rankings and statistics
-- Compare players
-- View interactive charts
+### Statistics Tracking
+- Batting statistics (runs, average, strike rate, etc.)
+- Bowling statistics (wickets, economy, average, etc.)
+- Year-wise statistics tracking
+- Multiple format support (Test, ODI, T20)
 
-## Database Schema
+### Rankings System
+- Live batting rankings
+- Live bowling rankings
+- All-rounder rankings
+- Team rankings
 
-- **Users**: Authentication and role management
-- **Players**: Player profiles and basic information
-- **Player Statistics**: Performance data by format and year
-- **Top Performances**: Notable achievements
+### Comparison Tool
+- Side-by-side player comparison
+- Statistical analysis
+- Visual charts and graphs
 
-## Rankings System
+### Admin Panel
+- User management
+- Database administration
+- System statistics
+- Bulk operations
 
-The ranking system calculates points based on:
-- **Batting**: Runs, average, strike rate, centuries, recent form
-- **Bowling**: Wickets, average, economy rate, five-wicket hauls
-- **All-rounders**: Combined batting and bowling performance
-- **Teams**: Collective player strength by country
+## API Endpoints
+
+- `GET /` - Home page
+- `GET /login` - Login page
+- `POST /login` - Login authentication
+- `GET /register` - Registration page
+- `GET /dashboard` - User dashboard
+- `GET /players` - Players listing
+- `GET /player/<id>` - Player details
+- `GET /compare` - Player comparison
+- `GET /rankings` - Rankings page
+- `GET /admin` - Admin panel
+
+## Development
+
+### Running in Development Mode
+
+```bash
+export FLASK_ENV=development
+export FLASK_DEBUG=1
+python run.py
+```
+
+### Database Migrations
+
+The application uses SQLAlchemy with automatic table creation. For production, consider using Flask-Migrate for database migrations.
+
+### Testing
+
+```bash
+# Run tests (if test files exist)
+python -m pytest tests/
+```
+
+## Deployment
+
+### Production Setup
+
+1. **Set Production Environment Variables**
+   ```env
+   FLASK_CONFIG=production
+   DATABASE_URL=postgresql://user:pass@host:port/db
+   SECRET_KEY=your-secure-secret-key
+   ```
+
+2. **Use Gunicorn for Production**
+   ```bash
+   pip install gunicorn
+   gunicorn -w 4 -b 0.0.0.0:5000 app:app
+   ```
+
+3. **Set up Reverse Proxy** (Nginx/Apache)
+
+### Docker Deployment
+
+```dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY . .
+
+EXPOSE 5000
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "app:app"]
+```
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Database Connection Error**
+   - Verify PostgreSQL is running
+   - Check database credentials in `.env`
+   - Ensure database and user exist
+
+2. **Import Errors**
+   - Activate virtual environment
+   - Install all dependencies: `pip install -r requirements.txt`
+
+3. **Permission Errors**
+   - Check PostgreSQL user permissions
+   - Verify database ownership
+
+### Logs
+
+Application logs are written to console. For production, configure proper logging:
+
+```python
+import logging
+logging.basicConfig(level=logging.INFO)
+```
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Test thoroughly
+4. Add tests if applicable
 5. Submit a pull request
 
 ## License
 
-This project is open source and available under the MIT License.
+This project is licensed under the MIT License.
 
 ## Support
 
-For issues or questions, please check the documentation or create an issue in the project repository.
+For support and questions:
+- Create an issue in the repository
+- Contact the development team
+- Check the documentation
+
+---
+
+**Note**: This application is designed for educational and demonstration purposes. For production use, ensure proper security measures, data validation, and backup strategies are implemented.

@@ -1,13 +1,29 @@
-from flask import render_template, redirect, url_for, flash, request, jsonify
+from flask import render_template, redirect, url_for, flash, request, jsonify, current_app as app
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import app, db
+from app import db
 from models import User, Player, PlayerStatistic, TopPerformance
 from forms import LoginForm, RegisterForm, PlayerForm, PlayerStatisticForm, SearchForm, CompareForm
 from utils import get_player_career_stats, get_top_performers, generate_comparison_data
 from rankings import get_batting_rankings, get_bowling_rankings, get_all_rounder_rankings, get_team_rankings
 from sqlalchemy import or_, and_
 import logging
+
+@app.route('/debug')
+def debug():
+    """Debug route to check database connection"""
+    try:
+        total_players = Player.query.count()
+        players = Player.query.limit(5).all()
+        player_names = [f"{p.name} ({p.country})" for p in players]
+        
+        return jsonify({
+            'total_players': total_players,
+            'sample_players': player_names,
+            'database_url': app.config.get('SQLALCHEMY_DATABASE_URI', 'Not set')
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)})
 
 @app.route('/')
 def index():
