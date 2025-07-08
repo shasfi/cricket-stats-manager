@@ -203,7 +203,7 @@
                     <ul class="pagination justify-content-center">
                         {% if players.has_prev %}
                             <li class="page-item">
-                                <a class="page-link" href="{{ url_for('players', page=players.prev_num, **request.args) }}">
+                                <a class="page-link" href="{{ url_for('players', page=players.prev_num, **args) }}">
                                     <i class="fas fa-chevron-left"></i> Previous
                                 </a>
                             </li>
@@ -213,7 +213,7 @@
                             {% if page_num %}
                                 {% if page_num != players.page %}
                                     <li class="page-item">
-                                        <a class="page-link" href="{{ url_for('players', page=page_num, **request.args) }}">{{ page_num }}</a>
+                                        <a class="page-link" href="{{ url_for('players', page=page_num, **args) }}">{{ page_num }}</a>
                                     </li>
                                 {% else %}
                                     <li class="page-item active">
@@ -229,7 +229,7 @@
                         
                         {% if players.has_next %}
                             <li class="page-item">
-                                <a class="page-link" href="{{ url_for('players', page=players.next_num, **request.args) }}">
+                                <a class="page-link" href="{{ url_for('players', page=players.next_num, **args) }}">
                                     Next <i class="fas fa-chevron-right"></i>
                                 </a>
                             </li>

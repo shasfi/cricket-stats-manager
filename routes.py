@@ -131,7 +131,10 @@ def players():
         page=page, per_page=20, error_out=False
     )
     
-    return render_template('players.html', players=players, form=form)
+    # Remove 'page' from request.args for safe pagination links
+    args = request.args.to_dict()
+    args.pop('page', None)
+    return render_template('players.html', players=players, form=form, args=args)
 
 @app.route('/player/<int:player_id>')
 def player_detail(player_id):
