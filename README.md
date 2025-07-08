@@ -1,1 +1,0 @@
-# cricket-stats-manager
